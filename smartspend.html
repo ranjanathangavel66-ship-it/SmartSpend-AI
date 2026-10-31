@@ -1,0 +1,197 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>SmartSpend AI</title>
+<style>
+*{box-sizing:border-box}
+body{margin:0;font-family:Arial,sans-serif;background:#f2f5fb;color:#182230}
+header{background:#2459d3;color:white;padding:25px 16px;text-align:center}
+header h1{margin:0}
+header p{margin-bottom:0}
+main{max-width:850px;margin:auto;padding:16px}
+.card{background:white;padding:18px;margin-bottom:16px;border-radius:14px;box-shadow:0 3px 12px #0000000d}
+h2{font-size:19px;margin-top:0}
+.stats{display:grid;grid-template-columns:repeat(3,1fr);gap:10px}
+.stat{background:#eef3ff;padding:14px;border-radius:10px;overflow-wrap:anywhere}
+.stat small{color:#526078}
+.stat strong{display:block;font-size:20px;margin-top:8px}
+input,select,button{width:100%;padding:12px;margin:5px 0;border:1px solid #ccd4e2;border-radius:8px;font-size:15px}
+button{background:#2459d3;color:white;border:0;font-weight:bold;cursor:pointer}
+.delete{width:auto;background:#ffe9e7;color:#b42318;padding:7px 10px}
+.item{display:flex;justify-content:space-between;align-items:center;gap:8px;padding:10px 0;border-bottom:1px solid #eee}
+.muted{color:#667085;font-size:13px}
+.bar{height:10px;background:#e6eaf2;border-radius:10px;overflow:hidden}
+#progress{height:10px;background:#15966a;width:0%}
+.tip{background:#eef8f3;padding:12px;border-radius:9px;margin:8px 0;line-height:1.5}
+@media(max-width:520px){.stats{grid-template-columns:1fr}.stat strong{font-size:22px}}
+</style>
+</head>
+<body>
+<header>
+<h1>💸 SmartSpend AI</h1>
+<p>Your Personal Finance Assistant</p>
+</header>
+<main>
+<section class="stats">
+<div class="stat"><small>Monthly Spending</small><strong id="total">₹0</strong></div>
+<div class="stat"><small>Monthly Budget</small><strong id="budgetShow">₹5000</strong></div>
+<div class="stat"><small>Money Remaining</small><strong id="remaining">₹5000</strong></div>
+</section>
+
+<section class="card">
+<h2>1. Set Monthly Budget</h2>
+<input id="budget" type="number" min="1" value="5000" placeholder="Enter budget">
+<button onclick="saveBudget()">Save Budget</button>
+<div class="bar"><div id="progress"></div></div>
+<p id="budgetTip" class="muted"></p>
+</section>
+
+<section class="card">
+<h2>2. Add Expense</h2>
+<input id="name" maxlength="60" placeholder="Expense name (e.g. Lunch)">
+<input id="amount" type="number" min="0.01" step="0.01" placeholder="Amount in ₹">
+<select id="category">
+<option>Food</option>
+<option>Travel</option>
+<option>Education</option>
+<option>Shopping</option>
+<option>Bills</option>
+<option>Health</option>
+<option>Other</option>
+</select>
+<button onclick="addExpense()">+ Add Expense</button>
+</section>
+
+<section class="card">
+<h2>3. Expense History</h2>
+<div id="list">No expenses added yet.</div>
+<button onclick="loadSample()" style="background:#526078">Try Sample Data</button>
+<button onclick="clearAll()" style="background:#b42318">Clear All Expenses</button>
+</section>
+
+<section class="card">
+<h2>4. Spending by Category</h2>
+<div id="categories">Add expenses to see your breakdown.</div>
+</section>
+
+<section class="card">
+<h2>5. Smart Saving Tips</h2>
+<div id="tips" class="tip">Add your expenses to receive budget tips.</div>
+<p class="muted">This student prototype uses rule-based financial insights. It does not connect to bank accounts or provide professional financial advice.</p>
+</section>
+</main>
+
+<script>
+let budgetAmount=Number(localStorage.getItem("smartBudget"))||5000;
+let expenses=[];
+try{
+expenses=JSON.parse(localStorage.getItem("smartExpenses")||"[]");
+if(!Array.isArray(expenses))expenses=[];
+}catch(e){expenses=[];}
+
+function money(n){
+return "₹"+Number(n).toLocaleString("en-IN",{maximumFractionDigits:2});
+}
+function safe(s){
+return String(s).replace(/[&<>"']/g,function(c){
+return {"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c];
+});
+}
+function persist(){
+localStorage.setItem("smartBudget",budgetAmount);
+localStorage.setItem("smartExpenses",JSON.stringify(expenses));
+}
+function currentMonth(){
+let now=new Date();
+return expenses.filter(e=>{
+let d=new Date(e.date);
+return d.getMonth()===now.getMonth()&&d.getFullYear()===now.getFullYear();
+});
+}
+function saveBudget(){
+let value=Number(document.getElementById("budget").value);
+if(!Number.isFinite(value)||value<=0){
+alert("Please enter a budget greater than zero.");return;
+}
+budgetAmount=value;
+persist();render();
+}
+function addExpense(){
+let name=document.getElementById("name").value.trim();
+let amount=Number(document.getElementById("amount").value);
+let category=document.getElementById("category").value;
+if(!name||!Number.isFinite(amount)||amount<=0){
+alert("Enter an expense name and a valid amount.");return;
+}
+expenses.push({id:Date.now(),name:name,amount:amount,category:category,date:new Date().toISOString()});
+document.getElementById("name").value="";
+document.getElementById("amount").value="";
+persist();render();
+}
+function deleteExpense(id){
+expenses=expenses.filter(e=>e.id!==id);
+persist();render();
+}
+function clearAll(){
+if(confirm("Delete all expenses?")){
+expenses=[];persist();render();
+}
+}
+function loadSample(){
+let now=new Date().toISOString();
+expenses.push(
+{id:Date.now()+1,name:"Lunch",amount:120,category:"Food",date:now},
+{id:Date.now()+2,name:"Bus fare",amount:40,category:"Travel",date:now},
+{id:Date.now()+3,name:"Notebook",amount:180,category:"Education",date:now},
+{id:Date.now()+4,name:"Snacks",amount:80,category:"Food",date:now}
+);
+persist();render();
+}
+function render(){
+let list=currentMonth();
+let total=list.reduce((sum,e)=>sum+e.amount,0);
+let left=budgetAmount-total;
+let percent=Math.min(100,total/budgetAmount*100);
+document.getElementById("total").textContent=money(total);
+document.getElementById("budgetShow").textContent=money(budgetAmount);
+document.getElementById("remaining").textContent=money(left);
+document.getElementById("remaining").style.color=left<0?"#b42318":"#15966a";
+document.getElementById("budget").value=budgetAmount;
+document.getElementById("progress").style.width=percent+"%";
+document.getElementById("progress").style.background=total>budgetAmount?"#d92d20":total>budgetAmount*.8?"#f79009":"#15966a";
+document.getElementById("budgetTip").textContent="You have used "+Math.round(percent)+"% of your budget.";
+
+let history=[...expenses].sort((a,b)=>b.id-a.id);
+document.getElementById("list").innerHTML=history.length?history.map(e=>
+'<div class="item"><div><b>'+safe(e.name)+'</b><div class="muted">'+safe(e.category)+' · '+new Date(e.date).toLocaleDateString("en-IN")+'</div></div><div><b>'+money(e.amount)+'</b> <button class="delete" onclick="deleteExpense('+e.id+')">×</button></div></div>'
+).join(""):"No expenses added yet.";
+
+let groups={};
+list.forEach(e=>groups[e.category]=(groups[e.category]||0)+e.amount);
+let keys=Object.keys(groups).sort((a,b)=>groups[b]-groups[a]);
+document.getElementById("categories").innerHTML=keys.length?keys.map(k=>
+'<p>'+safe(k)+': <b>'+money(groups[k])+'</b></p><div class="bar"><div style="height:10px;width:'+(groups[k]/(total||1)*100)+'%;background:#6287ef"></div></div>'
+).join(""):"Add expenses to see your breakdown.";
+
+let tips=[];
+if(!list.length){
+tips.push("Start by recording your daily expenses.");
+}else{
+if(left<0)tips.push("You are over budget by "+money(-left)+". Review non-essential expenses.");
+else if(percent>=80)tips.push("You have used most of your budget. Keep "+money(left)+" for essential needs.");
+else tips.push("You have "+money(left)+" remaining. Keep tracking your expenses.");
+if(keys.length){
+tips.push("Your highest spending category is "+keys[0]+". Check whether you can save money there.");
+}
+tips.push("Try planning your weekly expenses and saving a small amount regularly.");
+}
+document.getElementById("tips").innerHTML=tips.map(t=>'<div class="tip">💡 '+safe(t)+'</div>').join("");
+persist();
+}
+render();
+</script>
+</body>
+</html>
