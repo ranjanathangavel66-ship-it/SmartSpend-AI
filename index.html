@@ -4,194 +4,590 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>SmartSpend AI</title>
+<title>SmartSpend AI - Business Edition</title>
+
 <style>
 *{box-sizing:border-box}
-body{margin:0;font-family:Arial,sans-serif;background:#f2f5fb;color:#182230}
-header{background:#2459d3;color:white;padding:25px 16px;text-align:center}
+body{
+ margin:0;
+ font-family:Arial,sans-serif;
+ background:#f2f5fb;
+ color:#182230;
+}
+header{
+ background:#2459d3;
+ color:white;
+ padding:25px 15px;
+ text-align:center;
+}
 header h1{margin:0}
 header p{margin-bottom:0}
-main{max-width:850px;margin:auto;padding:16px}
-.card{background:white;padding:18px;margin-bottom:16px;border-radius:14px;box-shadow:0 3px 12px #0000000d}
+main{max-width:950px;margin:auto;padding:16px}
+.card{
+ background:white;
+ padding:18px;
+ margin-bottom:16px;
+ border-radius:14px;
+ box-shadow:0 3px 12px #0000000d;
+}
 h2{font-size:19px;margin-top:0}
-.stats{display:grid;grid-template-columns:repeat(3,1fr);gap:10px}
-.stat{background:#eef3ff;padding:14px;border-radius:10px;overflow-wrap:anywhere}
+.stats{
+ display:grid;
+ grid-template-columns:repeat(3,1fr);
+ gap:10px;
+ margin-bottom:16px;
+}
+.stat{
+ background:#eef3ff;
+ padding:14px;
+ border-radius:10px;
+ overflow-wrap:anywhere;
+}
 .stat small{color:#526078}
-.stat strong{display:block;font-size:20px;margin-top:8px}
-input,select,button{width:100%;padding:12px;margin:5px 0;border:1px solid #ccd4e2;border-radius:8px;font-size:15px}
-button{background:#2459d3;color:white;border:0;font-weight:bold;cursor:pointer}
-.delete{width:auto;background:#ffe9e7;color:#b42318;padding:7px 10px}
-.item{display:flex;justify-content:space-between;align-items:center;gap:8px;padding:10px 0;border-bottom:1px solid #eee}
+.stat strong{
+ display:block;
+ font-size:21px;
+ margin-top:8px;
+}
+input,select{
+ width:100%;
+ padding:12px;
+ margin:6px 0;
+ border:1px solid #ccd4e2;
+ border-radius:8px;
+ font-size:15px;
+}
+button{
+ width:100%;
+ padding:12px;
+ margin:6px 0;
+ border:0;
+ border-radius:8px;
+ background:#2459d3;
+ color:white;
+ font-size:15px;
+ font-weight:bold;
+ cursor:pointer;
+}
+.secondary{background:#526078}
+.delete{
+ width:auto;
+ background:#ffe9e7;
+ color:#b42318;
+ padding:7px 10px;
+}
+.item{
+ display:flex;
+ justify-content:space-between;
+ align-items:center;
+ gap:8px;
+ padding:10px 0;
+ border-bottom:1px solid #eee;
+}
 .muted{color:#667085;font-size:13px}
-.bar{height:10px;background:#e6eaf2;border-radius:10px;overflow:hidden}
-#progress{height:10px;background:#15966a;width:0%}
-.tip{background:#eef8f3;padding:12px;border-radius:9px;margin:8px 0;line-height:1.5}
-@media(max-width:520px){.stats{grid-template-columns:1fr}.stat strong{font-size:22px}}
+.result{
+ background:#eef8f3;
+ padding:13px;
+ border-radius:9px;
+ margin-top:10px;
+ line-height:1.8;
+}
+.bar{
+ height:10px;
+ background:#e6eaf2;
+ border-radius:10px;
+ overflow:hidden;
+}
+.fill{
+ height:10px;
+ background:#15966a;
+}
+nav{
+ display:flex;
+ flex-wrap:wrap;
+ gap:7px;
+ margin-bottom:15px;
+}
+nav a{
+ background:#e5edff;
+ color:#2459d3;
+ padding:9px 12px;
+ border-radius:8px;
+ text-decoration:none;
+ font-size:13px;
+ font-weight:bold;
+}
+footer{
+ text-align:center;
+ color:#667085;
+ padding:20px;
+ font-size:12px;
+}
+@media(max-width:520px){
+ .stats{grid-template-columns:1fr}
+ .stat strong{font-size:22px}
+}
+@media print{
+ body *{visibility:hidden}
+ #invoicePreview,#invoicePreview *{visibility:visible}
+ #invoicePreview{
+ position:absolute;
+ left:0;
+ top:0;
+ width:100%;
+ box-shadow:none;
+ }
+}
 </style>
 </head>
+
 <body>
+
 <header>
-<h1>💸 SmartSpend AI</h1>
-<p>Your Personal Finance Assistant</p>
+<h1>💼 SmartSpend AI</h1>
+<p>Smart Financial Assistant for Small Businesses</p>
 </header>
+
 <main>
-<section class="stats">
-<div class="stat"><small>Monthly Spending</small><strong id="total">₹0</strong></div>
-<div class="stat"><small>Monthly Budget</small><strong id="budgetShow">₹5000</strong></div>
-<div class="stat"><small>Money Remaining</small><strong id="remaining">₹5000</strong></div>
+
+<nav>
+<a href="#dashboard">Dashboard</a>
+<a href="#transactions">Transactions</a>
+<a href="#forecast">Forecast</a>
+<a href="#invoice">GST Invoice</a>
+<a href="#emi">EMI Calculator</a>
+</nav>
+
+<section class="stats" id="dashboard">
+<div class="stat">
+<small>Total Business Income</small>
+<strong id="incomeTotal">₹0</strong>
+</div>
+<div class="stat">
+<small>Total Expenses</small>
+<strong id="expenseTotal">₹0</strong>
+</div>
+<div class="stat">
+<small>Net Profit / Loss</small>
+<strong id="profitTotal">₹0</strong>
+</div>
 </section>
 
 <section class="card">
-<h2>1. Set Monthly Budget</h2>
-<input id="budget" type="number" min="1" value="5000" placeholder="Enter budget">
-<button onclick="saveBudget()">Save Budget</button>
-<div class="bar"><div id="progress"></div></div>
-<p id="budgetTip" class="muted"></p>
+<h2>1. Business Overview</h2>
+<p class="muted">Current month financial summary</p>
+<div class="bar">
+<div class="fill" id="profitBar" style="width:0%"></div>
+</div>
+<div id="businessTip" class="result">
+Add transactions to view your business insights.
+</div>
 </section>
 
-<section class="card">
-<h2>2. Add Expense</h2>
-<input id="name" maxlength="60" placeholder="Expense name (e.g. Lunch)">
-<input id="amount" type="number" min="0.01" step="0.01" placeholder="Amount in ₹">
+<section class="card" id="transactions">
+<h2>2. Add Business Transaction</h2>
+
+<select id="type">
+<option value="income">Business Income</option>
+<option value="expense">Business Expense</option>
+</select>
+
+<input id="description" maxlength="60"
+placeholder="Description (e.g. Product Sales)">
+
+<input id="amount" type="number" min="0.01"
+step="0.01" placeholder="Amount in ₹">
+
 <select id="category">
-<option>Food</option>
-<option>Travel</option>
-<option>Education</option>
-<option>Shopping</option>
-<option>Bills</option>
-<option>Health</option>
+<option>Sales</option>
+<option>Services</option>
+<option>Rent</option>
+<option>Salary</option>
+<option>Transport</option>
+<option>Materials</option>
+<option>Electricity</option>
 <option>Other</option>
 </select>
-<button onclick="addExpense()">+ Add Expense</button>
+
+<button onclick="addTransaction()">+ Add Transaction</button>
+
+<h2>Transaction History</h2>
+<div id="history">No transactions yet.</div>
+
+<button class="secondary" onclick="loadSample()">
+Try Sample Data
+</button>
+
+<button style="background:#b42318" onclick="clearData()">
+Clear All Data
+</button>
+</section>
+
+<section class="card" id="forecast">
+<h2>3. 📊 Cash Flow Forecast</h2>
+<p class="muted">
+Estimate your monthly income, expenses and closing balance
+using current month's recorded transactions.
+</p>
+
+<div class="result" id="forecastResult">
+Add business transactions to calculate your forecast.
+</div>
+</section>
+
+<section class="card" id="invoice">
+<h2>4. 🧾 GST Invoice Generator</h2>
+
+<input id="seller" maxlength="80"
+placeholder="Your Business Name">
+
+<input id="customer" maxlength="80"
+placeholder="Customer Name">
+
+<input id="invoiceNo" maxlength="30"
+placeholder="Invoice Number">
+
+<input id="product" maxlength="80"
+placeholder="Product / Service Name">
+
+<input id="qty" type="number" min="0.01"
+step="0.01" value="1" placeholder="Quantity">
+
+<input id="rate" type="number" min="0"
+step="0.01" placeholder="Price per unit">
+
+<select id="gstRate">
+<option value="0">GST 0%</option>
+<option value="5">GST 5%</option>
+<option value="12">GST 12%</option>
+<option value="18" selected>GST 18%</option>
+<option value="28">GST 28%</option>
+</select>
+
+<button onclick="generateInvoice()">
+Generate GST Invoice
+</button>
+
+<div id="invoicePreview"></div>
+
+</section>
+
+<section class="card" id="emi">
+<h2>5. 🏦 EMI Calculator</h2>
+
+<input id="loan" type="number" min="1"
+placeholder="Loan Amount (₹)">
+
+<input id="interest" type="number" min="0"
+step="0.01" placeholder="Annual Interest Rate (%)">
+
+<input id="years" type="number" min="0.01"
+step="0.01" placeholder="Loan Duration (Years)">
+
+<button onclick="calculateEMI()">Calculate EMI</button>
+
+<div id="emiResult" class="result">
+Enter loan details to calculate monthly EMI.
+</div>
 </section>
 
 <section class="card">
-<h2>3. Expense History</h2>
-<div id="list">No expenses added yet.</div>
-<button onclick="loadSample()" style="background:#526078">Try Sample Data</button>
-<button onclick="clearAll()" style="background:#b42318">Clear All Expenses</button>
+<h2>6. 💡 Smart Business Tips</h2>
+<div id="tips" class="result">
+Add transactions to receive business insights.
+</div>
+<p class="muted">
+This prototype uses rule-based calculations.
+Forecasts are estimates, not guaranteed results.
+</p>
 </section>
 
-<section class="card">
-<h2>4. Spending by Category</h2>
-<div id="categories">Add expenses to see your breakdown.</div>
-</section>
-
-<section class="card">
-<h2>5. Smart Saving Tips</h2>
-<div id="tips" class="tip">Add your expenses to receive budget tips.</div>
-<p class="muted">This student prototype uses rule-based financial insights. It does not connect to bank accounts or provide professional financial advice.</p>
-</section>
 </main>
 
+<footer>
+SmartSpend AI | Arthaton 2026 Prototype
+</footer>
+
 <script>
-let budgetAmount=Number(localStorage.getItem("smartBudget"))||5000;
-let expenses=[];
+
+let transactions=[];
+
 try{
-expenses=JSON.parse(localStorage.getItem("smartExpenses")||"[]");
-if(!Array.isArray(expenses))expenses=[];
-}catch(e){expenses=[];}
+ transactions=JSON.parse(
+ localStorage.getItem("businessTransactions")||"[]"
+ );
+ if(!Array.isArray(transactions))transactions=[];
+}catch(e){
+ transactions=[];
+}
 
 function money(n){
-return "₹"+Number(n).toLocaleString("en-IN",{maximumFractionDigits:2});
+ return "₹"+Number(n).toLocaleString("en-IN",{
+ maximumFractionDigits:2
+ });
 }
+
 function safe(s){
-return String(s).replace(/[&<>"']/g,function(c){
-return {"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c];
-});
+ return String(s).replace(/[&<>"']/g,function(c){
+ return {
+ "&":"&amp;",
+ "<":"&lt;",
+ ">":"&gt;",
+ '"':"&quot;",
+ "'":"&#39;"
+ }[c];
+ });
 }
-function persist(){
-localStorage.setItem("smartBudget",budgetAmount);
-localStorage.setItem("smartExpenses",JSON.stringify(expenses));
+
+function save(){
+ localStorage.setItem(
+ "businessTransactions",
+ JSON.stringify(transactions)
+ );
 }
+
 function currentMonth(){
-let now=new Date();
-return expenses.filter(e=>{
-let d=new Date(e.date);
-return d.getMonth()===now.getMonth()&&d.getFullYear()===now.getFullYear();
-});
+ let now=new Date();
+ return transactions.filter(t=>{
+ let d=new Date(t.date);
+ return d.getMonth()===now.getMonth()
+ &&d.getFullYear()===now.getFullYear();
+ });
 }
-function saveBudget(){
-let value=Number(document.getElementById("budget").value);
-if(!Number.isFinite(value)||value<=0){
-alert("Please enter a budget greater than zero.");return;
+
+function addTransaction(){
+
+ let type=document.getElementById("type").value;
+ let description=document.getElementById("description").value.trim();
+ let amount=Number(document.getElementById("amount").value);
+ let category=document.getElementById("category").value;
+
+ if(!description||!Number.isFinite(amount)||amount<=0){
+ alert("Enter a valid description and amount.");
+ return;
+ }
+
+ transactions.push({
+ id:Date.now(),
+ type,
+ description,
+ amount,
+ category,
+ date:new Date().toISOString()
+ });
+
+ document.getElementById("description").value="";
+ document.getElementById("amount").value="";
+
+ save();
+ render();
 }
-budgetAmount=value;
-persist();render();
+
+function deleteTransaction(id){
+ transactions=transactions.filter(t=>t.id!==id);
+ save();
+ render();
 }
-function addExpense(){
-let name=document.getElementById("name").value.trim();
-let amount=Number(document.getElementById("amount").value);
-let category=document.getElementById("category").value;
-if(!name||!Number.isFinite(amount)||amount<=0){
-alert("Enter an expense name and a valid amount.");return;
+
+function clearData(){
+ if(confirm("Delete all business transactions?")){
+ transactions=[];
+ save();
+ render();
+ }
 }
-expenses.push({id:Date.now(),name:name,amount:amount,category:category,date:new Date().toISOString()});
-document.getElementById("name").value="";
-document.getElementById("amount").value="";
-persist();render();
-}
-function deleteExpense(id){
-expenses=expenses.filter(e=>e.id!==id);
-persist();render();
-}
-function clearAll(){
-if(confirm("Delete all expenses?")){
-expenses=[];persist();render();
-}
-}
+
 function loadSample(){
-let now=new Date().toISOString();
-expenses.push(
-{id:Date.now()+1,name:"Lunch",amount:120,category:"Food",date:now},
-{id:Date.now()+2,name:"Bus fare",amount:40,category:"Travel",date:now},
-{id:Date.now()+3,name:"Notebook",amount:180,category:"Education",date:now},
-{id:Date.now()+4,name:"Snacks",amount:80,category:"Food",date:now}
-);
-persist();render();
+
+ let now=new Date().toISOString();
+
+ transactions.push(
+ {id:Date.now()+1,type:"income",description:"Product Sales",amount:25000,category:"Sales",date:now},
+ {id:Date.now()+2,type:"income",description:"Service Income",amount:10000,category:"Services",date:now},
+ {id:Date.now()+3,type:"expense",description:"Shop Rent",amount:5000,category:"Rent",date:now},
+ {id:Date.now()+4,type:"expense",description:"Materials",amount:4000,category:"Materials",date:now},
+ {id:Date.now()+5,type:"expense",description:"Electricity",amount:1000,category:"Electricity",date:now}
+ );
+
+ save();
+ render();
 }
+
 function render(){
-let list=currentMonth();
-let total=list.reduce((sum,e)=>sum+e.amount,0);
-let left=budgetAmount-total;
-let percent=Math.min(100,total/budgetAmount*100);
-document.getElementById("total").textContent=money(total);
-document.getElementById("budgetShow").textContent=money(budgetAmount);
-document.getElementById("remaining").textContent=money(left);
-document.getElementById("remaining").style.color=left<0?"#b42318":"#15966a";
-document.getElementById("budget").value=budgetAmount;
-document.getElementById("progress").style.width=percent+"%";
-document.getElementById("progress").style.background=total>budgetAmount?"#d92d20":total>budgetAmount*.8?"#f79009":"#15966a";
-document.getElementById("budgetTip").textContent="You have used "+Math.round(percent)+"% of your budget.";
 
-let history=[...expenses].sort((a,b)=>b.id-a.id);
-document.getElementById("list").innerHTML=history.length?history.map(e=>
-'<div class="item"><div><b>'+safe(e.name)+'</b><div class="muted">'+safe(e.category)+' · '+new Date(e.date).toLocaleDateString("en-IN")+'</div></div><div><b>'+money(e.amount)+'</b> <button class="delete" onclick="deleteExpense('+e.id+')">×</button></div></div>'
-).join(""):"No expenses added yet.";
+ let list=currentMonth();
 
-let groups={};
-list.forEach(e=>groups[e.category]=(groups[e.category]||0)+e.amount);
-let keys=Object.keys(groups).sort((a,b)=>groups[b]-groups[a]);
-document.getElementById("categories").innerHTML=keys.length?keys.map(k=>
-'<p>'+safe(k)+': <b>'+money(groups[k])+'</b></p><div class="bar"><div style="height:10px;width:'+(groups[k]/(total||1)*100)+'%;background:#6287ef"></div></div>'
-).join(""):"Add expenses to see your breakdown.";
+ let income=list
+ .filter(t=>t.type==="income")
+ .reduce((s,t)=>s+t.amount,0);
 
-let tips=[];
-if(!list.length){
-tips.push("Start by recording your daily expenses.");
-}else{
-if(left<0)tips.push("You are over budget by "+money(-left)+". Review non-essential expenses.");
-else if(percent>=80)tips.push("You have used most of your budget. Keep "+money(left)+" for essential needs.");
-else tips.push("You have "+money(left)+" remaining. Keep tracking your expenses.");
-if(keys.length){
-tips.push("Your highest spending category is "+keys[0]+". Check whether you can save money there.");
+ let expense=list
+ .filter(t=>t.type==="expense")
+ .reduce((s,t)=>s+t.amount,0);
+
+ let profit=income-expense;
+
+ document.getElementById("incomeTotal").textContent=money(income);
+ document.getElementById("expenseTotal").textContent=money(expense);
+
+ let profitElement=document.getElementById("profitTotal");
+ profitElement.textContent=money(profit);
+ profitElement.style.color=profit<0?"#b42318":"#15966a";
+
+ let percent=income>0?Math.min(100,Math.max(0,profit/income*100)):0;
+ document.getElementById("profitBar").style.width=percent+"%";
+
+ let history=[...transactions].sort(
+ (a,b)=>new Date(b.date)-new Date(a.date)
+ );
+
+ document.getElementById("history").innerHTML=
+ history.length?history.map(t=>
+ '<div class="item"><div><b>'+
+ safe(t.description)+
+ '</b><div class="muted">'+safe(t.category)+
+ ' · '+new Date(t.date).toLocaleDateString("en-IN")+
+ ' · '+(t.type==="income"?"Income":"Expense")+
+ '</div></div><div><b>'+
+ (t.type==="income"?"+":"-")+money(t.amount)+
+ '</b><button class="delete" onclick="deleteTransaction('+t.id+')">×</button></div></div>'
+ ).join(""):"No transactions yet.";
+
+ let tip="";
+
+ if(!list.length){
+ tip="Start recording your business income and expenses.";
+ }else if(profit<0){
+ tip="Your business expenses are higher than income. Review spending.";
+ }else if(expense>income*.8){
+ tip="Expenses are using a large part of your income. Review costs.";
+ }else{
+ tip="Your recorded income is higher than expenses. Continue tracking cash flow.";
+ }
+
+ document.getElementById("businessTip").textContent=tip;
+
+ updateForecast(income,expense);
+
+ let tips=[];
+ if(list.length){
+ tips.push("Record all business transactions regularly.");
+ if(profit<0)tips.push("Review expenses and compare them with business income.");
+ else tips.push("Track your monthly profit to understand business performance.");
+ tips.push("Keep invoices and transaction records for accounting.");
+ }
+ document.getElementById("tips").textContent=
+ tips.length?tips.join(" "):"Add transactions to receive business tips.";
 }
-tips.push("Try planning your weekly expenses and saving a small amount regularly.");
+
+function updateForecast(income,expense){
+
+ let now=new Date();
+ let elapsed=now.getDate();
+ let days=new Date(
+ now.getFullYear(),now.getMonth()+1,0
+ ).getDate();
+
+ let projectedIncome=income/days*days;
+ let projectedExpense=expense/days*days;
+
+ if(!currentMonth().length){
+ document.getElementById("forecastResult").textContent=
+ "Add transactions to calculate a forecast.";
+ return;
+ }
+
+ let projectedProfit=projectedIncome-projectedExpense;
+
+ document.getElementById("forecastResult").innerHTML=
+ "<b>Estimated monthly income:</b> "+money(projectedIncome)+
+ "<br><b>Estimated monthly expenses:</b> "+money(projectedExpense)+
+ "<br><b>Estimated monthly net:</b> "+money(projectedProfit)+
+ "<br><small>Based on recorded current-month totals. "+
+ "A simple projection, not a future guarantee.</small>";
 }
-document.getElementById("tips").innerHTML=tips.map(t=>'<div class="tip">💡 '+safe(t)+'</div>').join("");
-persist();
+
+function generateInvoice(){
+
+ let seller=document.getElementById("seller").value.trim();
+ let customer=document.getElementById("customer").value.trim();
+ let invoiceNo=document.getElementById("invoiceNo").value.trim();
+ let product=document.getElementById("product").value.trim();
+
+ let qty=Number(document.getElementById("qty").value);
+ let rate=Number(document.getElementById("rate").value);
+ let gst=Number(document.getElementById("gstRate").value);
+
+ if(!seller||!customer||!invoiceNo||!product||
+ !Number.isFinite(qty)||qty<=0||
+ !Number.isFinite(rate)||rate<0){
+ alert("Please enter all valid invoice details.");
+ return;
+ }
+
+ let subtotal=qty*rate;
+ let tax=subtotal*gst/100;
+ let total=subtotal+tax;
+
+ document.getElementById("invoicePreview").innerHTML=
+ '<div class="card">'+
+ '<h2>BUSINESS TAX INVOICE</h2>'+
+ '<p><b>Business:</b> '+safe(seller)+'</p>'+
+ '<p><b>Customer:</b> '+safe(customer)+'</p>'+
+ '<p><b>Invoice No:</b> '+safe(invoiceNo)+'</p>'+
+ '<p><b>Date:</b> '+new Date().toLocaleDateString("en-IN")+'</p>'+
+ '<hr>'+
+ '<p><b>Product / Service:</b> '+safe(product)+'</p>'+
+ '<p><b>Quantity:</b> '+qty+'</p>'+
+ '<p><b>Price per unit:</b> '+money(rate)+'</p>'+
+ '<p><b>Subtotal:</b> '+money(subtotal)+'</p>'+
+ '<p><b>GST Rate:</b> '+gst+'%</p>'+
+ '<p><b>GST Amount:</b> '+money(tax)+'</p>'+
+ '<h2>Total: '+money(total)+'</h2>'+
+ '<p class="muted">Prototype invoice. Verify applicable GST rules and invoice requirements before issuing an actual tax invoice.</p>'+
+ '<button onclick="window.print()">Print / Save as PDF</button>'+
+ '</div>';
 }
+
+function calculateEMI(){
+
+ let principal=Number(document.getElementById("loan").value);
+ let annual=Number(document.getElementById("interest").value);
+ let years=Number(document.getElementById("years").value);
+
+ if(!Number.isFinite(principal)||principal<=0||
+ !Number.isFinite(annual)||annual<0||
+ !Number.isFinite(years)||years<=0){
+ alert("Enter valid loan details.");
+ return;
+ }
+
+ let months=years*12;
+ let r=annual/1200;
+ let emi;
+
+ if(r===0){
+ emi=principal/months;
+ }else{
+ let factor=Math.pow(1+r,months);
+ emi=principal*r*factor/(factor-1);
+ }
+
+ let total=emi*months;
+ let interestAmount=total-principal;
+
+ document.getElementById("emiResult").innerHTML=
+ "<b>Monthly EMI:</b> "+money(emi)+
+ "<br><b>Total Interest:</b> "+money(interestAmount)+
+ "<br><b>Total Repayment:</b> "+money(total)+
+ "<br><small>Illustrative calculation. Actual lender charges may differ.</small>";
+}
+
 render();
+
 </script>
 </body>
 </html>
+
+
+
